@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>食品加工 製造記録アプリ - foodapp</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .expired-bg {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+        .warning-bg {
+            background-color: #fffbeeb;
+            border-left: 4px solid #f59e0b;
+        }
+        .normal-bg {
+            border-left: 4px solid #10b981;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-utensils text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wide">食品加工 製造記録アプリ</h1>
+            </div>
+            
+            <!-- User Status Header -->
+            <div id="userHeaderSection" class="hidden flex items-center space-x-3">
+                <div class="flex items-center space-x-2">
+                    <img id="userAvatar" src="https://placehold.co/40x40/10b981/ffffff?text=User" alt="User Avatar" class="w-8 h-8 rounded-full border border-white">
+                    <span id="userName" class="text-sm font-medium hidden sm:inline">ユーザー名</span>
+                </div>
+                <button id="logoutBtn" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm px-3 py-1.5 rounded-lg transition duration-200 flex items-center space-x-1 shadow">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>ログアウト</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- 1. LOGIN SCREEN -->
+        <section id="loginScreen" class="max-w-md mx-auto my-12 bg-white p-8 rounded-2xl shadow-xl text-center border border-slate-100">
+            <div class="mb-6">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-clipboard-list text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">ログインが必要です</h2>
+                <p class="text-sm text-slate-500 mt-2">食品加工実習の製造記録を登録・閲覧するにはログインしてください。</p>
+            </div>
+
+            <!-- Login Error Message -->
+            <div id="loginError" class="hidden mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-200 text-left">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> <span id="loginErrorMsg"></span>
+            </div>
+
+            <div class="space-y-3">
+                <button id="googleAuthBtn" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-medium py-3 px-4 border border-slate-300 rounded-xl shadow-sm transition duration-200 flex items-center justify-center space-x-3">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span>Googleアカウントでログイン</span>
+                </button>
+
+                <div class="relative my-4">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-slate-400">または</span></div>
+                </div>
+
+                <!-- Guest Login Option for Quick Testing -->
+                <button id="guestAuthBtn" class="w-full bg-slate-700 hover:bg-slate-800 text-white font-medium py-3 px-4 rounded-xl shadow-sm transition duration-200 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>ゲスト・匿名モードで試す</span>
+                </button>
+            </div>
+
+            <div class="mt-6 text-xs text-slate-400">
+                <p>※標準的なFirebase Authentication機能に対応しています。</p>
+            </div>
+        </section>
+
+        <!-- 2. APP MAIN CONTENT (Hidden until logged in) -->
+        <div id="appContent" class="hidden space-y-8">
+
+            <!-- Dynamic Form Section (Create & Edit) -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                    <h2 id="formTitle" class="text-lg font-bold text-slate-800 flex items-center">
+                        <i class="fa-solid fa-pen-to-square text-emerald-600 mr-2"></i>製造記録の登録
+                    </h2>
+                    <button id="cancelEditBtn" class="hidden text-xs text-slate-500 hover:text-red-500 underline">
+                        編集を取り消す
+                    </button>
+                </div>
+
+                <!-- Form Validation Alert Box -->
+                <div id="formAlert" class="hidden mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-xl border border-red-200 flex items-start space-x-2">
+                    <i class="fa-solid fa-circle-exclamation text-red-500 mt-0.5"></i>
+                    <span id="formAlertText">入力内容に問題があります。</span>
+                </div>
+
+                <form id="recordForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Hidden field for edit mode ID -->
+                    <input type="hidden" id="recordId" value="">
+
+                    <!-- 1. 製品名 (必須) -->
+                    <div class="col-span-1">
+                        <label for="productName" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                            製品名 <span class="text-red-500">*</span>
+                        </label>
+                        <select id="productName" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                            <option value="">製品を選択、または直接入力</option>
+                            <option value="いちごジャム">いちごジャム</option>
+                            <option value="マーマレード">マーマレード</option>
+                            <option value="米みそ">米みそ</option>
+                            <option value="麦みそ">麦みそ</option>
+                            <option value="ポークソーセージ">ポークソーセージ</option>
+                            <option value="ベーコン">ベーコン</option>
+                            <option value="食パン">食パン</option>
+                            <option value="りんごジュース">りんごジュース</option>
+                            <option value="custom">その他 (直接入力)</option>
+                        </select>
+                        <!-- カスタム入力用 -->
+                        <input type="text" id="customProductName" placeholder="製品名を入力してください" class="hidden mt-2 w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                    </div>
+
+                    <!-- 3. 製造数量 (必須) -->
+                    <div class="col-span-1">
+                        <label for="quantity" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                            製造数量 (個・本など) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" id="quantity" min="1" placeholder="例: 50" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                    </div>
+
+                    <!-- 2. 製造日 (必須) -->
+                    <div class="col-span-1">
+                        <label for="manufactureDate" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                            製造日 <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="manufactureDate" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                    </div>
+
+                    <!-- 4. 賞味期限 (必須) -->
+                    <div class="col-span-1">
+                        <label for="expiryDate" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                            賞味期限 <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="expiryDate" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                    </div>
+
+                    <!-- 5. メモ (必須・複数行) -->
+                    <div class="col-span-1 md:col-span-2">
+                        <label for="memo" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                            メモ (材料、味の評価、改善点など) <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="memo" rows="3" placeholder="原材料割合、糖度、加熱時間、官能評価結果などを入力..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"></textarea>
+                    </div>
+
+                    <!-- Form Submit Button -->
+                    <div class="col-span-1 md:col-span-2 flex justify-end">
+                        <button type="submit" id="submitBtn" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-xl shadow transition duration-200 flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            <span id="submitBtnText">記録を登録する</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Dashboard Summary & Filter Section -->
+            <section class="space-y-4">
+                <!-- Summary Aggregations -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-emerald-100 text-emerald-600 rounded-lg">
+                            <i class="fa-solid fa-boxes-stacked text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium">登録済み総件数</p>
+                            <p id="totalRecordsCount" class="text-xl font-bold text-slate-800">0 件</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-blue-100 text-blue-600 rounded-lg">
+                            <i class="fa-solid fa-calculator text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium">合計製造数量</p>
+                            <p id="totalQuantitySum" class="text-xl font-bold text-slate-800">0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-amber-100 text-amber-600 rounded-lg">
+                            <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 font-medium">賞味期限注意 / 期限切れ</p>
+                            <p id="warningCount" class="text-xl font-bold text-amber-600">0 件</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter and Sort Controls -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                        <!-- Filter by Product Name -->
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-filter text-slate-400 text-sm"></i>
+                            <select id="filterProduct" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="ALL">すべての製品を表示</option>
+                            </select>
+                        </div>
+
+                        <!-- Sort Order -->
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-sort text-slate-400 text-sm"></i>
+                            <select id="sortOrder" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="desc">製造日: 新しい順</option>
+                                <option value="asc">製造日: 古い順</option>
+                                <option value="expiry">賞味期限が近い順</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="relative w-full md:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                        <input type="text" id="searchKeyword" placeholder="メモや製品名を検索..." class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-9 pr-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Record List Section -->
+            <section>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-md font-bold text-slate-700 flex items-center">
+                        <i class="fa-solid fa-list-check mr-2 text-emerald-600"></i>製造記録一覧
+                    </h3>
+                    <span id="filteredCountBadge" class="text-xs bg-slate-200 text-slate-700 font-semibold px-2.5 py-1 rounded-full">0件</span>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center">
+                    <i class="fa-solid fa-box-open text-4xl text-slate-300 mb-3"></i>
+                    <p class="text-slate-600 font-medium">該当する製造記録が見つかりません</p>
+                    <p class="text-xs text-slate-400 mt-1">上のフォームから新しい製造記録を登録してください。</p>
+                </div>
+
+                <!-- Card List Container -->
+                <div id="recordList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Cards will be dynamically generated here -->
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Modal for Delete Confirmation -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-trash-can text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-center text-slate-800">記録を削除しますか？</h3>
+            <p class="text-xs text-slate-500 text-center mt-2">この操作は取り消せません。本当に削除してもよろしいですか？</p>
+            <div class="flex space-x-3 mt-6">
+                <button id="cancelDeleteBtn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium py-2 rounded-xl transition">キャンセル</button>
+                <button id="confirmDeleteBtn" class="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 rounded-xl transition">削除する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-4 text-center text-xs text-slate-400">
+        <p>食品加工実習 製造記録 Web App (foodapp)</p>
+    </footer>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithPopup, 
+            GoogleAuthProvider, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            addDoc, 
+            updateDoc, 
+            deleteDoc, 
+            onSnapshot, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // Firebase Setup & Initialization
+        // ==========================================
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'foodapp-demo';
+        
+        // Fallback Firebase Configuration for Preview/Standard environments
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyDemoConfigKeyForTestingOnly12345",
+                authDomain: "foodapp-demo.firebaseapp.com",
+                projectId: "foodapp-demo",
+                storageBucket: "foodapp-demo.appspot.com",
+                messagingSenderId: "1234567890",
+                appId: "1:1234567890:web:abcdef123456"
+            };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // State Management Variables
+        let currentUser = null;
+        let unsubscribeRecords = null;
+        let allRecords = [];
+        let recordToDeleteId = null;
+
+        // UI Elements Reference
+        const loginScreen = document.getElementById('loginScreen');
+        const appContent = document.getElementById('appContent');
+        const userHeaderSection = document.getElementById('userHeaderSection');
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const loginError = document.getElementById('loginError');
+        const loginErrorMsg = document.getElementById('loginErrorMsg');
+
+        const recordForm = document.getElementById('recordForm');
+        const recordIdInput = document.getElementById('recordId');
+        const productNameSelect = document.getElementById('productName');
+        const customProductNameInput = document.getElementById('customProductName');
+        const quantityInput = document.getElementById('quantity');
+        const manufactureDateInput = document.getElementById('manufactureDate');
+        const expiryDateInput = document.getElementById('expiryDate');
+        const memoInput = document.getElementById('memo');
+        const formAlert = document.getElementById('formAlert');
+        const formAlertText = document.getElementById('formAlertText');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const formTitle = document.getElementById('formTitle');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        const filterProduct = document.getElementById('filterProduct');
+        const sortOrder = document.getElementById('sortOrder');
+        const searchKeyword = document.getElementById('searchKeyword');
+
+        const recordList = document.getElementById('recordList');
+        const emptyState = document.getElementById('emptyState');
+        const totalRecordsCount = document.getElementById('totalRecordsCount');
+        const totalQuantitySum = document.getElementById('totalQuantitySum');
+        const warningCount = document.getElementById('warningCount');
+        const filteredCountBadge = document.getElementById('filteredCountBadge');
+
+        const deleteModal = document.getElementById('deleteModal');
+
+        // ==========================================
+        // Event Listeners Registration
+        // ==========================================
+
+        // Google Auth Login
+        document.getElementById('googleAuthBtn').addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                loginError.classList.add('hidden');
+                await signInWithPopup(auth, provider);
+            } catch (err) {
+                console.error("Google auth error:", err);
+                // Fallback to anonymous auth if popup fails or is blocked/misconfigured
+                showLoginError("Googleログインに失敗しました。ゲストモードでお試しください: " + err.message);
+            }
+        });
+
+        // Guest / Anonymous Login
+        document.getElementById('guestAuthBtn').addEventListener('click', async () => {
+            try {
+                loginError.classList.add('hidden');
+                await signInAnonymously(auth);
+            } catch (err) {
+                console.error("Anonymous auth error:", err);
+                showLoginError("ゲストログインに失敗しました: " + err.message);
+            }
+        });
+
+        // Logout Button
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // Custom Product Select Trigger
+        productNameSelect.addEventListener('change', () => {
+            if (productNameSelect.value === 'custom') {
+                customProductNameInput.classList.remove('hidden');
+                customProductNameInput.required = true;
+                customProductNameInput.focus();
+            } else {
+                customProductNameInput.classList.add('hidden');
+                customProductNameInput.required = false;
+            }
+        });
+
+        // Cancel Edit Mode
+        cancelEditBtn.addEventListener('click', resetForm);
+
+        // Filter and Sort Event Handlers
+        filterProduct.addEventListener('change', renderRecords);
+        sortOrder.addEventListener('change', renderRecords);
+        searchKeyword.addEventListener('input', renderRecords);
+
+        // Form Submit (Create & Update)
+        recordForm.addEventListener('submit', handleFormSubmit);
+
+        // Modal Action Listeners
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+            deleteModal.classList.add('hidden');
+            recordToDeleteId = null;
+        });
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (recordToDeleteId) {
+                await executeDelete(recordToDeleteId);
+                deleteModal.classList.add('hidden');
+                recordToDeleteId = null;
+            }
+        });
+
+        // Default Date Pre-fill (Today for Manufacture Date)
+        const todayStr = new Date().toISOString().split('T')[0];
+        manufactureDateInput.value = todayStr;
+
+        // ==========================================
+        // Auth Listener & Initial Token Check
+        // ==========================================
+        async function initAuth() {
+            // Priority check for provided initial token
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } catch (e) {
+                    console.warn("Custom token sign in failed, falling back to anonymous auth:", e);
+                    await signInAnonymously(auth).catch(() => {});
+                }
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    // Update User UI
+                    loginScreen.classList.add('hidden');
+                    appContent.classList.remove('hidden');
+                    userHeaderSection.classList.remove('hidden');
+                    
+                    userName.textContent = user.displayName || (user.isAnonymous ? 'ゲストユーザー' : user.email || 'ユーザー');
+                    userAvatar.src = user.photoURL || `https://placehold.co/40x40/10b981/ffffff?text=${(user.displayName || 'U').charAt(0)}`;
+
+                    // Start Firestore Listener
+                    listenToFirestore();
+                } else {
+                    // Reset to Login View
+                    loginScreen.classList.remove('hidden');
+                    appContent.classList.add('hidden');
+                    userHeaderSection.classList.add('hidden');
+
+                    if (unsubscribeRecords) {
+                        unsubscribeRecords();
+                        unsubscribeRecords = null;
+                    }
+                    allRecords = [];
+                }
+            });
+        }
+
+        initAuth();
+
+        function showLoginError(msg) {
+            loginErrorMsg.textContent = msg;
+            loginError.classList.remove('hidden');
+        }
+
+        // ==========================================
+        // Firestore Data Binding
+        // ==========================================
+        function listenToFirestore() {
+            if (!currentUser) return;
+
+            // MANDATORY RULE 1: Standard artifact path structure for user data
+            const recordsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'records');
+
+            // MANDATORY RULE 2: Simple query without compound ordering to avoid index issues
+            unsubscribeRecords = onSnapshot(recordsRef, (snapshot) => {
+                allRecords = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                updateProductFilterOptions();
+                renderRecords();
+            }, (error) => {
+                console.error("Firestore subscription error:", error);
+            });
+        }
+
+        // ==========================================
+        // Form Processing & Validation
+        // ==========================================
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            formAlert.classList.add('hidden');
+
+            // Extract Values
+            let pName = productNameSelect.value;
+            if (pName === 'custom') {
+                pName = customProductNameInput.value.trim();
+            }
+            const qty = parseInt(quantityInput.value, 10);
+            const mDate = manufactureDateInput.value;
+            const eDate = expiryDateInput.value;
+            const memo = memoInput.value.trim();
+
+            // 1. 未入力バリデーション
+            if (!pName) {
+                showFormError("製品名を選択または入力してください。");
+                return;
+            }
+            if (isNaN(qty) || qty <= 0) {
+                showFormError("製造数量には1以上の正確な数値を入力してください。");
+                return;
+            }
+            if (!mDate) {
+                showFormError("製造日を選択してください。");
+                return;
+            }
+            if (!eDate) {
+                showFormError("賞味期限を選択してください。");
+                return;
+            }
+            if (!memo) {
+                showFormError("メモ（材料や味の評価、改善点）を入力してください。");
+                return;
+            }
+
+            // 2. 日付チェック: 賞味期限が製造日より前の日付になっていたらエラーにする
+            if (new Date(eDate) < new Date(mDate)) {
+                showFormError("賞味期限は製造日以降の日付を指定してください。");
+                return;
+            }
+
+            const recordData = {
+                productName: pName,
+                quantity: qty,
+                manufactureDate: mDate,
+                expiryDate: eDate,
+                memo: memo,
+                updatedAt: serverTimestamp()
+            };
+
+            const recId = recordIdInput.value;
+
+            try {
+                if (recId) {
+                    // Update Mode
+                    const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'records', recId);
+                    await updateDoc(docRef, recordData);
+                } else {
+                    // Create Mode
+                    recordData.createdAt = serverTimestamp();
+                    const recordsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'records');
+                    await addDoc(recordsRef, recordData);
+                }
+
+                resetForm();
+            } catch (err) {
+                console.error("Save Record Error:", err);
+                showFormError("保存中にエラーが発生しました: " + err.message);
+            }
+        }
+
+        function showFormError(msg) {
+            formAlertText.textContent = msg;
+            formAlert.classList.remove('hidden');
+        }
+
+        function resetForm() {
+            recordForm.reset();
+            recordIdInput.value = '';
+            productNameSelect.value = '';
+            customProductNameInput.classList.add('hidden');
+            customProductNameInput.value = '';
+            manufactureDateInput.value = todayStr;
+            formAlert.classList.add('hidden');
+            
+            formTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-emerald-600 mr-2"></i>製造記録の登録`;
+            submitBtnText.textContent = '記録を登録する';
+            cancelEditBtn.classList.add('hidden');
+        }
+
+        // Edit Item Setup
+        window.startEditRecord = function(id) {
+            const item = allRecords.find(r => r.id === id);
+            if (!item) return;
+
+            recordIdInput.value = item.id;
+
+            // Check if product is in standard select list
+            const standardOptions = Array.from(productNameSelect.options).map(o => o.value);
+            if (standardOptions.includes(item.productName)) {
+                productNameSelect.value = item.productName;
+                customProductNameInput.classList.add('hidden');
+            } else {
+                productNameSelect.value = 'custom';
+                customProductNameInput.value = item.productName;
+                customProductNameInput.classList.remove('hidden');
+            }
+
+            quantityInput.value = item.quantity;
+            manufactureDateInput.value = item.manufactureDate;
+            expiryDateInput.value = item.expiryDate;
+            memoInput.value = item.memo;
+
+            formTitle.innerHTML = `<i class="fa-solid fa-file-pen text-amber-500 mr-2"></i>製造記録の編集`;
+            submitBtnText.textContent = '変更内容を保存';
+            cancelEditBtn.classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // Trigger Delete Dialog
+        window.promptDeleteRecord = function(id) {
+            recordToDeleteId = id;
+            deleteModal.classList.remove('hidden');
+        };
+
+        async function executeDelete(id) {
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'records', id);
+                await deleteDoc(docRef);
+            } catch (err) {
+                console.error("Delete Record Error:", err);
+            }
+        }
+
+        // ==========================================
+        // UI Render & Logic Updates
+        // ==========================================
+        function updateProductFilterOptions() {
+            const currentSelected = filterProduct.value;
+            const uniqueProducts = Array.from(new Set(allRecords.map(r => r.productName))).sort();
+
+            filterProduct.innerHTML = '<option value="ALL">すべての製品を表示</option>';
+            uniqueProducts.forEach(prod => {
+                const opt = document.createElement('option');
+                opt.value = prod;
+                opt.textContent = prod;
+                filterProduct.appendChild(opt);
+            });
+
+            if (uniqueProducts.includes(currentSelected)) {
+                filterProduct.value = currentSelected;
+            } else {
+                filterProduct.value = 'ALL';
+            }
+        }
+
+        function renderRecords() {
+            const selectedProduct = filterProduct.value;
+            const sortMode = sortOrder.value;
+            const search = searchKeyword.value.trim().toLowerCase();
+
+            // 1. Filter
+            let filtered = allRecords.filter(item => {
+                const matchProd = (selectedProduct === 'ALL' || item.productName === selectedProduct);
+                const matchSearch = !search || 
+                    item.productName.toLowerCase().includes(search) || 
+                    item.memo.toLowerCase().includes(search);
+                return matchProd && matchSearch;
+            });
+
+            // 2. Sort
+            filtered.sort((a, b) => {
+                if (sortMode === 'desc') {
+                    return new Date(b.manufactureDate) - new Date(a.manufactureDate);
+                } else if (sortMode === 'asc') {
+                    return new Date(a.manufactureDate) - new Date(b.manufactureDate);
+                } else if (sortMode === 'expiry') {
+                    return new Date(a.expiryDate) - new Date(b.expiryDate);
+                }
+                return 0;
+            });
+
+            // 3. Update Summary Statistics
+            const totalRecords = allRecords.length;
+            const totalQty = filtered.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+            
+            // Expiry status check
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let warnCount = 0;
+            allRecords.forEach(item => {
+                const expDate = new Date(item.expiryDate);
+                expDate.setHours(0,0,0,0);
+                const diffTime = expDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays <= 3) {
+                    warnCount++;
+                }
+            });
+
+            totalRecordsCount.textContent = `${totalRecords} 件`;
+            totalQuantitySum.textContent = totalQty.toLocaleString();
+            warningCount.textContent = `${warnCount} 件`;
+            filteredCountBadge.textContent = `${filtered.length}件`;
+
+            // 4. Render HTML List
+            recordList.innerHTML = '';
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const expDate = new Date(item.expiryDate);
+                expDate.setHours(0,0,0,0);
+                const diffTime = expDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                let cardStyle = "normal-bg";
+                let statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-medium">適正</span>`;
+
+                if (diffDays < 0) {
+                    cardStyle = "expired-bg";
+                    statusBadge = `<span class="bg-red-100 text-red-800 text-xs px-2.5 py-0.5 rounded-full font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>賞味期限切れ (${Math.abs(diffDays)}日前)</span>`;
+                } else if (diffDays <= 3) {
+                    cardStyle = "warning-bg";
+                    statusBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-bold"><i class="fa-solid fa-clock mr-1"></i>期限間近 (あと ${diffDays}日)</span>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-xl shadow-sm p-5 border border-slate-200 transition hover:shadow-md ${cardStyle}`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="text-base font-bold text-slate-800">${escapeHtml(item.productName)}</h4>
+                            <div class="mt-1">${statusBadge}</div>
+                        </div>
+                        <div class="flex space-x-1">
+                            <button onclick="startEditRecord('${item.id}')" title="編集" class="p-2 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-slate-100 transition">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="promptDeleteRecord('${item.id}')" title="削除" class="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-slate-100 transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 my-3 py-2 border-y border-slate-100 text-xs">
+                        <div>
+                            <span class="text-slate-400 block">製造数量</span>
+                            <span class="font-bold text-slate-700 text-sm">${item.quantity}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">製造日</span>
+                            <span class="font-medium text-slate-700">${item.manufactureDate}</span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="text-slate-400 block">賞味期限</span>
+                            <span class="font-medium text-slate-700">${item.expiryDate}</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-slate-400 text-xs block mb-1">メモ (材料・評価・改善点)</span>
+                        <p class="text-xs text-slate-600 whitespace-pre-wrap bg-slate-50 p-2.5 rounded-lg border border-slate-100">${escapeHtml(item.memo)}</p>
+                    </div>
+                `;
+
+                recordList.appendChild(card);
+            });
+        }
+
+        // Utility to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;")
+                      .replace(/"/g, "&quot;")
+                      .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
